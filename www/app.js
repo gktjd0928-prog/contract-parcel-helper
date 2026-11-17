@@ -66,6 +66,7 @@
     checked: (window.DEFAULT_TARIFF.defaultChecked || []).slice(),
     oneSpec: {}, steps: {},
     opt15: false, manual: false, manualRates: {},
+    cod: false, codFee: window.DEFAULT_TARIFF.cod.fee,
     qty: [0, 0, 0, 0, 0, 0],
     updatedAt: null
   });
@@ -141,9 +142,13 @@
       return Math.floor(w / 10) * 10;
     };
 
+    // 착불요금 = 제안요금 + 착불수수료 (반품·회수 착불은 수수료를 100원 단위로 감액·면제 가능)
+    const codFee = q.cod ? Math.max(0, Math.min(tariff.cod.fee, q.codFee ?? tariff.cod.fee)) : null;
+    rows.forEach((row) => { row.cod = codFee == null ? null : row.final + codFee; });
+
     const limit = limitFor(q.years | 0);
     return {
-      rows, applied, inLimit, outLimit, total: inLimit + outLimit, limit, over: inLimit > limit,
+      rows, applied, inLimit, outLimit, total: inLimit + outLimit, limit, over: inLimit > limit, codFee,
       volumeLabel: tariff.volumes[vol],
       totalQty: qty.reduce((a, b) => a + b, 0),
       avg2: avgOf([0, 1]),
@@ -175,6 +180,12 @@
     $('#q-years').value = String(quote.years);
     $('#opt-15').checked = !!quote.opt15;
     $('#opt-manual').checked = !!quote.manual;
+    $('#opt-cod').checked = !!quote.cod;
+    const c = tariff.cod;
+    const fees = [];
+    for (let f = c.fee; f >= 0; f -= c.reduceUnit) fees.push(f);
+    $('#cod-fee').innerHTML = fees.map((f) => `<option value="${f}">${f === c.fee ? `${won(f)}원 (기본)` : f === 0 ? '면제 (반품·회수)' : `${won(f)}원 (반품·회수 감액)`}</option>`).join('');
+    $('#cod-fee').value = String(quote.codFee ?? c.fee);
     renderQty();
   }
 
@@ -233,7 +244,7 @@
     else st.innerHTML = `<div class="status ok">✓ 적정 감액 (한도 ${won(r.limit)}원 이내)<br>${sum}</div>`;
 
     $('#result-table').innerHTML = `
-      <thead><tr><th>규격</th><th>기준요금</th><th>감액</th><th>제안요금</th></tr></thead>
+      <thead><tr><th>규격</th><th>기준요금</th><th>감액</th><th>제안요금</th>${r.codFee != null ? '<th>착불요금</th>' : ''}</tr></thead>
       <tbody>${r.rows.map((row) => `
         <tr>
           <td>${esc(row.name)}<div class="meta">${esc(row.size)}</div></td>
@@ -242,8 +253,10 @@
           <td class="final ${row.manual ? 'manual' : ''}">${quote.manual
             ? `<input class="manual-input" inputmode="numeric" data-manual="${row.key}" value="${esc(quote.manualRates[row.key] ?? '')}" placeholder="${won(row.auto)}" aria-label="${esc(row.name)} 제안요금 직접 입력">`
             : won(row.final)}</td>
+          ${r.codFee != null ? `<td class="cod">${won(row.cod)}</td>` : ''}
         </tr>`).join('')}
       </tbody>`;
+    $('#cod-fee-wrap').hidden = !quote.cod;
     renderAverages(r);
   }
 
@@ -272,6 +285,8 @@
     $('#q-years').addEventListener('change', (e) => { quote.years = +e.target.value; refreshCalc(); });
     $('#opt-15').addEventListener('change', (e) => { quote.opt15 = e.target.checked; refreshCalc(); });
     $('#opt-manual').addEventListener('change', (e) => { quote.manual = e.target.checked; refreshCalc(); });
+    $('#opt-cod').addEventListener('change', (e) => { quote.cod = e.target.checked; refreshCalc(); });
+    $('#cod-fee').addEventListener('change', (e) => { quote.codFee = +e.target.value; refreshCalc(); });
 
     $('#discount-sections').addEventListener('change', (e) => {
       const id = e.target.dataset.disc;
@@ -377,7 +392,7 @@
           <div class="title">${esc(q.client)}</div>
           <div class="sub">${esc(r.volumeLabel)} · 2kg ${won(two.final)}원 · ${new Date(q.updatedAt).toLocaleDateString('ko-KR')}</div>
         </div>
-        <div class="side"><button data-del-quote="${q.id}" aria-label="삭제">🗑</button></div>
+        <div class="side"><button data-del-quote="${q.id}" aria-label="삭제">${ICON.trash}</button></div>
       </div>`;
     }).join('') : '<div class="empty">저장된 견적이 없습니다.</div>';
   }
@@ -392,9 +407,10 @@
     lines.push(`[우체국 계약소포 요금 제안] ${quote.client || '고객'}님`);
     lines.push('');
     lines.push(`계약 물량: 월 ${r.volumeLabel}`);
-    r.rows.forEach((row) => lines.push(`· ${row.name}(${row.size}): ${won(row.final)}원`));
+    r.rows.forEach((row) => lines.push(`· ${row.name}(${row.size}): ${won(row.final)}원${row.cod != null ? ` / 착불 ${won(row.cod)}원` : ''}`));
     if (r.avg2 != null) lines.push(`· 2kg 평균: ${won(r.avg2)}원`);
     if (r.avg5 != null) lines.push(`· 5kg 평균: ${won(r.avg5)}원`);
+    if (r.codFee != null) lines.push(`※ 착불요금 = 제안요금 + 착불수수료 ${won(r.codFee)}원 (수취인 부담)`);
     lines.push('');
     tariff.notes.forEach((n) => {
       lines.push(`■ ${n.title}`);
@@ -423,8 +439,10 @@
       <h3 class="p-h">1. 규격별 제안 요금</h3>
       <div class="scroll-x"><table class="rate-table p-table">
         <thead><tr><th>구분</th>${r.rows.map((row) => `<th>${esc(row.name)}<div class="meta">${esc(row.size)}</div></th>`).join('')}</tr></thead>
-        <tbody><tr><td>제안요금</td>${r.rows.map((row) => `<td class="final">${won(row.final)}</td>`).join('')}</tr></tbody>
+        <tbody><tr><td>제안요금</td>${r.rows.map((row) => `<td class="final">${won(row.final)}</td>`).join('')}</tr>
+        ${r.codFee != null ? `<tr class="cod-row"><td>착불요금<div class="meta">수취인 부담</div></td>${r.rows.map((row) => `<td>${won(row.cod)}</td>`).join('')}</tr>` : ''}</tbody>
       </table></div>
+      ${r.codFee != null ? `<p class="p-avg meta">착불요금 = 제안요금 + 착불수수료 ${won(r.codFee)}원${r.codFee < tariff.cod.fee ? ' (반품·회수 착불 감액 적용)' : ''}</p>` : ''}
       ${(r.avg2 != null || r.avg5 != null) ? `<p class="p-avg">${r.avg2 != null ? `2kg 평균 <b>${won(r.avg2)}원</b>` : ''}${r.avg2 != null && r.avg5 != null ? ' · ' : ''}${r.avg5 != null ? `5kg 평균 <b>${won(r.avg5)}원</b>` : ''}</p>` : ''}
       ${r.over ? `<div class="status bad">⚠ 감액 한도(${won(r.limit)}원)를 초과했습니다. 발송 전 조정하세요.</div>` : ''}
       ${tariff.notes.map((n, i) => `
@@ -494,7 +512,7 @@
           <div class="title">${esc(c.name)}<span class="badge">${statusName(c.status)}</span>${due ? '<span class="badge due">연락할 날</span>' : ''}</div>
           <div class="sub">${esc([c.contact, c.phone, c.nextDate ? '다음 ' + c.nextDate : '', c.memo].filter(Boolean).join(' · ')) || '&nbsp;'}</div>
         </div>
-        ${tel ? `<div class="side"><a href="tel:${tel}" aria-label="전화">📞</a><a href="sms:${tel}" aria-label="문자">💬</a></div>` : ''}
+        ${tel ? `<div class="side"><a href="tel:${tel}" aria-label="전화">${ICON.phone}</a><a href="sms:${tel}" aria-label="문자">${ICON.sms}</a></div>` : ''}
       </div>`;
     }).join('') : `<div class="empty">${list.length ? '조건에 맞는 고객이 없습니다.' : '＋ 버튼으로 고객을 추가하거나, [업체 찾기]에서 업체를 담으세요.'}</div>`;
   }

@@ -161,9 +161,9 @@
           <div class="sub">${esc(r.addr)}</div>
         </div>
         <div class="side">
-          ${tel ? `<a href="tel:${tel}" aria-label="전화">📞</a>` : ''}
-          ${r.email ? `<a href="mailto:${esc(r.email)}" aria-label="메일">✉️</a>` : ''}
-          <button data-add-seller="${esc(r.key)}" aria-label="내 고객에 담기" ${added ? 'disabled' : ''}>${added ? '✓' : '＋'}</button>
+          ${tel ? `<a href="tel:${tel}" aria-label="전화">${ICON.phone}</a>` : ''}
+          ${r.email ? `<a href="mailto:${esc(r.email)}" aria-label="메일">${ICON.mail}</a>` : ''}
+          <button data-add-seller="${esc(r.key)}" aria-label="내 고객에 담기" ${added ? 'disabled' : ''}>${added ? ICON.check : ICON.plus}</button>
         </div>
       </div>`;
     }).join('') || '<div class="empty">조건에 맞는 업체가 없습니다.</div>';
@@ -213,7 +213,7 @@
       const b = e.target.closest('[data-add-seller]');
       if (!b) return;
       const r = rows.find((x) => x.key === b.dataset.addSeller);
-      if (r && window.cph.addClientFrom(r)) { b.textContent = '✓'; b.disabled = true; }
+      if (r && window.cph.addClientFrom(r)) { b.innerHTML = ICON.check; b.disabled = true; }
     });
     $('#seller-clear').addEventListener('click', async () => {
       if (!confirm('불러온 업체 목록을 모두 삭제할까요? (내 고객에 담은 업체는 남습니다)')) return;

@@ -59,7 +59,10 @@
         <li>5kg 평균 = (초소형·2kg·5kg 제안요금 × 각 물량)의 가중평균</li>
         <li>평균요금은 10원 미만을 버립니다.</li>
       </ul>
-      ${t.notes.map((n) => `<h4>${esc(n.title)}</h4><ul>${n.items.map((it) => `<li>${esc(it)}</li>`).join('')}</ul>`).join('')}
+      <h4>착불소포 (요금수취인지불)</h4>
+      <ul>${t.cod.rules.map((it) => `<li>${esc(it)}</li>`).join('')}</ul>
+      <p class="meta">착불요금 = 제안요금 + 착불수수료 ${won(t.cod.fee)}원 · 지침에서 ‘착불’로 찾아 원문을 확인하세요 (제13조, 부가취급 수수료).</p>
+      ${t.notes.filter((n) => n.title !== '착불요금').map((n) => `<h4>${esc(n.title)}</h4><ul>${n.items.map((it) => `<li>${esc(it)}</li>`).join('')}</ul>`).join('')}
       <p class="meta">기준: ${esc(t.version)} · 금액은 [설정]에서 수정한 값이 반영됩니다.</p>`;
   }
 
