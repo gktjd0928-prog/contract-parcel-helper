@@ -1,0 +1,17 @@
+{
+  "appId": "com.contractparcel.helper",
+  "appName": "계약소포 도우미",
+  "webDir": "www",
+  "android": {
+    "allowMixedContent": false
+  },
+  "plugins": {
+    "CapacitorUpdater": {
+      "autoUpdate": false,
+      "statsUrl": "",
+      "appReadyTimeout": 15000,
+      "autoDeleteFailed": true,
+      "autoDeletePrevious": true
+    }
+  }
+}

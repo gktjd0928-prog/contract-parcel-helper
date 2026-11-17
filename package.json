@@ -1,0 +1,23 @@
+{
+  "name": "contract-parcel-helper",
+  "version": "1.0.0",
+  "private": true,
+  "description": "계약소포 요금 계산·제안서·고객관리 모바일 앱",
+  "scripts": {
+    "serve": "python -m http.server 5173 --bind 127.0.0.1 --directory www",
+    "sync": "cap sync android",
+    "open": "cap open android",
+    "apk": "cap sync android && cd android && gradlew.bat assembleDebug"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "6.2.0"
+  },
+  "dependencies": {
+    "@capacitor/android": "6.2.0",
+    "@capacitor/app": "6.0.3",
+    "@capacitor/core": "6.2.0",
+    "@capacitor/share": "6.0.4",
+    "@capgo/capacitor-updater": "6.53.0",
+    "pdfjs-dist": "3.11.174"
+  }
+}

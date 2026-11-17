@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0f766e">
+  <title>계약소포 도우미</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="appbar">
+    <h1 id="appbar-title">요금 계산</h1>
+    <button class="icon-btn" id="btn-reset" title="새 견적" aria-label="새 견적">↺</button>
+  </header>
+
+  <main>
+    <!-- 요금 계산 -->
+    <section class="view active" id="view-calc">
+      <div class="card">
+        <label class="field">
+          <span>고객(업체)명</span>
+          <input id="q-client" type="text" placeholder="예: 행복상회" autocomplete="off">
+        </label>
+        <div class="row2">
+          <label class="field">
+            <span>월 평균 물량</span>
+            <select id="q-volume"></select>
+          </label>
+          <label class="field">
+            <span>계약 기간 (감액 한도)</span>
+            <select id="q-years">
+              <option value="0">1년 미만</option>
+              <option value="1">1년 이상</option>
+              <option value="3">3년 이상</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <div id="discount-sections"></div>
+
+      <h2 class="section-title">5·6. 단계 감액 <small>50원 단위</small></h2>
+      <div class="card" id="step-list"></div>
+
+      <div id="limit-status"></div>
+
+      <h2 class="section-title">규격별 제안요금</h2>
+      <div class="card">
+        <label class="disc"><input type="checkbox" id="opt-15"><span class="name">15kg(140cm) 규격 추가<div class="meta">10kg 요금 + 1,000원</div></span></label>
+        <label class="disc"><input type="checkbox" id="opt-manual"><span class="name">제안요금 직접 입력<div class="meta">입력한 규격만 계산값 대신 사용</div></span></label>
+      </div>
+      <div class="card flush" style="margin-top:8px">
+        <table class="rate-table" id="result-table"></table>
+      </div>
+
+      <h2 class="section-title">규격별 예상 물량 <small>평균요금 계산</small></h2>
+      <div class="card">
+        <div class="qty-grid" id="qty-grid"></div>
+        <dl class="kv-row" id="avg-box"></dl>
+      </div>
+
+      <div class="actions">
+        <button class="btn ghost" id="btn-save-quote">견적 저장</button>
+        <button class="btn primary" id="btn-to-proposal">제안서 보기 →</button>
+      </div>
+
+      <h2 class="section-title">저장된 견적</h2>
+      <div id="quote-list" class="list"></div>
+    </section>
+
+    <!-- 제안서 -->
+    <section class="view" id="view-proposal">
+      <div class="proposal" id="proposal"></div>
+      <div class="card">
+        <label class="field">
+          <span>받는 사람 휴대폰</span>
+          <input id="p-phone" type="tel" inputmode="tel" placeholder="010-0000-0000">
+        </label>
+        <label class="field">
+          <span>문자 내용</span>
+          <textarea id="p-message" rows="8"></textarea>
+        </label>
+      </div>
+      <div class="actions">
+        <button class="btn ghost" id="btn-copy">복사</button>
+        <button class="btn ghost" id="btn-share">공유</button>
+        <button class="btn primary" id="btn-sms">문자 보내기</button>
+      </div>
+    </section>
+
+    <!-- 고객 / 업체 찾기 -->
+    <section class="view" id="view-crm">
+      <div class="segment" role="tablist">
+        <button class="active" data-seg="mine" role="tab">내 고객</button>
+        <button data-seg="sellers" role="tab">업체 찾기</button>
+      </div>
+
+      <div id="seg-mine">
+        <div class="crm-stats" id="crm-stats"></div>
+        <div class="toolbar">
+          <input id="crm-search" type="search" placeholder="이름·전화·메모 검색">
+          <select id="crm-filter"><option value="">전체</option></select>
+        </div>
+        <div id="crm-list" class="list"></div>
+        <button class="fab" id="btn-add-client" aria-label="고객 추가">＋</button>
+      </div>
+
+      <div id="seg-sellers" hidden>
+        <div class="card" id="seller-empty">
+          <p style="margin-top:0"><b>통신판매사업자 목록 불러오기</b></p>
+          <p class="hint" style="margin:0 0 10px">공정거래위원회가 공개하는 <b>통신판매사업자 등록현황</b>(공공데이터포털 data.go.kr) CSV 파일을 받아 불러오세요. 시·군·구별 파일 여러 개를 이어서 불러올 수 있습니다.</p>
+          <div class="actions" style="margin-top:0">
+            <label class="btn primary file-btn">CSV 파일 선택<input type="file" id="seller-file" accept=".csv,text/csv" multiple></label>
+          </div>
+          <p class="hint" id="seller-meta" style="margin:10px 0 0"></p>
+        </div>
+        <div id="seller-tools" hidden>
+          <div class="toolbar">
+            <input id="seller-search" type="search" placeholder="상호·대표자·품목·주소 검색">
+            <select id="seller-region"><option value="">전체 지역</option></select>
+          </div>
+          <div class="toolbar" style="margin-top:-4px">
+            <label class="chk"><input type="checkbox" id="seller-active" checked> 정상영업만</label>
+            <label class="chk"><input type="checkbox" id="seller-phone"> 전화번호 있는 곳만</label>
+          </div>
+          <p class="hint" id="seller-count"></p>
+          <div id="seller-list" class="list"></div>
+          <div class="actions"><button class="btn ghost" id="seller-more" hidden>더 보기</button></div>
+          <div class="actions"><button class="btn ghost danger" id="seller-clear">불러온 목록 삭제</button></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 업무지침 -->
+    <section class="view" id="view-guide">
+      <div class="guide-search">
+        <div class="gs-box">
+          <span aria-hidden="true">🔍</span>
+          <input id="gs-input" type="text" enterkeyhint="search" placeholder="지침에서 찾기 (예: 반송수수료)" autocomplete="off" aria-label="지침 본문 찾기">
+          <button id="gs-clear" class="icon-btn" hidden aria-label="검색어 지우기">✕</button>
+        </div>
+        <span id="gs-count" class="gs-count" aria-live="polite"></span>
+        <button id="gs-prev" class="gs-nav" aria-label="이전 결과" disabled>▲</button>
+        <button id="gs-next" class="gs-nav" aria-label="다음 결과" disabled>▼</button>
+      </div>
+
+      <details class="card guide-summary">
+        <summary>요금 산출 기준 요약</summary>
+        <div class="guide-rules" id="guide-rules"></div>
+      </details>
+
+      <p class="hint" id="guide-meta">우체국 계약소포업무 처리지침</p>
+      <div id="guide-pages" class="pdf-pages"></div>
+    </section>
+
+    <!-- 설정 -->
+    <section class="view" id="view-settings">
+      <h2 class="section-title">앱 업데이트</h2>
+      <div class="card">
+        <div class="upd-head">
+          <span id="upd-version">현재 버전</span>
+          <button class="btn ghost" id="upd-check">업데이트 확인</button>
+        </div>
+        <div id="upd-status"></div>
+      </div>
+
+      <h2 class="section-title">담당자 정보 <small>제안서에 표시</small></h2>
+      <div class="card">
+        <label class="field"><span>소속 (우체국명)</span><input id="s-office" type="text" placeholder="예: ○○우체국"></label>
+        <div class="row2">
+          <label class="field"><span>이름</span><input id="s-name" type="text"></label>
+          <label class="field"><span>연락처</span><input id="s-phone" type="tel" inputmode="tel"></label>
+        </div>
+      </div>
+
+      <h2 class="section-title">기준요금표 <small id="tariff-version"></small></h2>
+      <p class="hint">출시 전 최신 고시와 반드시 대조하세요. 칸을 눌러 수정하면 바로 저장됩니다.</p>
+      <div class="card flush scroll-x">
+        <table class="rate-table edit" id="tariff-table"></table>
+      </div>
+
+      <h2 class="section-title">감액 항목 금액</h2>
+      <div class="card" id="discount-editor"></div>
+
+      <div class="actions">
+        <button class="btn ghost" id="btn-tariff-reset">요금·감액 기본값 복원</button>
+      </div>
+
+      <h2 class="section-title">백업</h2>
+      <div class="actions">
+        <button class="btn ghost" id="btn-export">데이터 내보내기</button>
+        <label class="btn ghost file-btn">데이터 가져오기<input type="file" id="btn-import" accept="application/json"></label>
+      </div>
+      <p class="hint">고객·견적 데이터는 이 기기 안에만 저장되며 서버로 전송되지 않습니다. (불러온 업체 목록은 백업에 포함되지 않습니다)</p>
+    </section>
+  </main>
+
+  <nav class="tabbar">
+    <button data-view="calc" class="active"><span>🧮</span>계산</button>
+    <button data-view="proposal"><span>📄</span>제안서</button>
+    <button data-view="crm"><span>👥</span>고객</button>
+    <button data-view="guide"><span>📖</span>지침</button>
+    <button data-view="settings"><span>⚙️</span>설정</button>
+  </nav>
+
+  <!-- 고객 편집 시트 -->
+  <div class="sheet-backdrop" id="client-sheet" hidden>
+    <form class="sheet" id="client-form">
+      <div class="sheet-head">
+        <h3 id="client-sheet-title">고객 추가</h3>
+        <button type="button" class="icon-btn" data-close aria-label="닫기">✕</button>
+      </div>
+      <input type="hidden" name="id">
+      <label class="field"><span>업체명 *</span><input name="name" required></label>
+      <div class="row2">
+        <label class="field"><span>담당자</span><input name="contact"></label>
+        <label class="field"><span>전화</span><input name="phone" type="tel" inputmode="tel"></label>
+      </div>
+      <label class="field"><span>주소</span><input name="address"></label>
+      <div class="row2">
+        <label class="field"><span>진행 단계</span><select name="status"></select></label>
+        <label class="field"><span>월 물량</span><select name="volume"></select></label>
+      </div>
+      <label class="field"><span>다음 연락일</span><input name="nextDate" type="date"></label>
+      <label class="field"><span>메모</span><textarea name="memo" rows="3"></textarea></label>
+      <div class="actions">
+        <button type="button" class="btn danger" id="btn-del-client">삭제</button>
+        <button type="button" class="btn ghost" id="btn-quote-client">견적 작성</button>
+        <button type="submit" class="btn primary">저장</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="version.js"></script>
+  <script src="vendor/pdf.min.js"></script>
+  <script src="rates.js"></script>
+  <script src="db.js"></script>
+  <script src="app.js"></script>
+  <script src="sellers.js"></script>
+  <script src="guide.js"></script>
+  <script src="updater.js"></script>
+</body>
+</html>
