@@ -405,3 +405,4 @@ body::before {
 .capture .p-table th, .capture .p-table td { font-size: 14px; padding: 9px 8px !important; }
 .capture .status.bad { background: #fdecea; color: #b42318; }   /* 그림 도구가 color-mix를 못 읽어 단색으로 */
 .msg-text summary { font-size: 13px; color: var(--muted); cursor: pointer; margin-top: 6px; }
+.rate-table.edit td.num { text-align: right; padding: 9px 6px 9px 2px; font-size: 13px; font-variant-numeric: tabular-nums; color: var(--text); }

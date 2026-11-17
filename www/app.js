@@ -42,7 +42,7 @@
     tariff = clone(window.DEFAULT_TARIFF);
     const o = store.get(KEYS.tariff, null);
     if (o) {
-      if (Array.isArray(o.rates) && o.rates.length === tariff.rates.length) tariff.rates = o.rates;
+      // 기준요금은 고정: 예전에 수정해 저장한 요금(o.rates)이 있어도 쓰지 않음
       if (o.amounts) {
         tariff.discounts.forEach((d) => { if (o.amounts[d.id] != null) d.amount = o.amounts[d.id]; });
         tariff.steps.forEach((s) => { if (o.amounts[s.id] != null) s.max = o.amounts[s.id]; });
@@ -54,7 +54,7 @@
     const amounts = {};
     tariff.discounts.forEach((d) => { amounts[d.id] = d.amount; });
     tariff.steps.forEach((s) => { amounts[s.id] = s.max; });
-    store.set(KEYS.tariff, { rates: tariff.rates, amounts, limits: tariff.limits });
+    store.set(KEYS.tariff, { amounts, limits: tariff.limits });
   }
   const discountById = (id) => tariff.discounts.find((d) => d.id === id);
   loadTariff();
@@ -692,7 +692,7 @@
     $('#tariff-table').innerHTML = `
       <colgroup><col class="c-vol">${heads.map(() => '<col>').join('')}</colgroup>
       <thead><tr><th>월 물량</th>${heads.map((s) => `<th>${esc(s.name)}</th>`).join('')}</tr></thead>
-      <tbody>${tariff.rates.map((row, r) => `<tr><td>${esc(shortVol(tariff.volumes[r]))}</td>${row.map((v, c) => `<td><input inputmode="numeric" data-r="${r}" data-c="${c}" value="${v}" aria-label="${esc(tariff.volumes[r])} ${esc(heads[c]?.name || '')}"></td>`).join('')}</tr>`).join('')}</tbody>`;
+      <tbody>${tariff.rates.map((row, r) => `<tr><td>${esc(shortVol(tariff.volumes[r]))}</td>${row.map((v) => `<td class="num">${won(v)}</td>`).join('')}</tr>`).join('')}</tbody>`;
 
     $('#discount-editor').innerHTML =
       tariff.discounts.map((d) => editorRow(d.id, d.name, d.amount)).join('') +
@@ -708,17 +708,7 @@
         const p = profile(); p[k] = e.target.value.trim(); store.set(KEYS.profile, p);
       });
     });
-    $('#tariff-table').addEventListener('change', (e) => {
-      const t = e.target;
-      if (t.dataset.r == null) return;
-      const v = toInt(t.value);
-      if (v == null) { t.value = tariff.rates[t.dataset.r][t.dataset.c]; return; }
-      tariff.rates[t.dataset.r][t.dataset.c] = v;
-      t.value = v;
-      saveTariffOverrides();
-      refreshCalc();
-      toast('기준요금을 수정했습니다');
-    });
+    // 기준요금표는 고정값이라 수정 기능 없음 (읽기 전용)
     $('#discount-editor').addEventListener('change', (e) => {
       const id = e.target.dataset.amt;
       if (!id) return;
@@ -737,7 +727,7 @@
       toast('감액 금액을 수정했습니다');
     });
     $('#btn-tariff-reset').addEventListener('click', () => {
-      if (!confirm('요금표와 감액 금액을 기본값으로 되돌릴까요?')) return;
+      if (!confirm('감액 금액과 한도를 기본값으로 되돌릴까요?')) return;
       localStorage.removeItem(KEYS.tariff);
       loadTariff();
       renderSettings();

@@ -1,9 +1,9 @@
 {
-  "version": "1.0.10",
-  "bundleUrl": "https://github.com/gktjd0928-prog/contract-parcel-helper/releases/download/v1.0.10/bundle-1.0.10.zip",
-  "checksum": "37a33120c404d754764239f1d056a96d5690f49a0a31de7a02555c388525cdd4",
+  "version": "1.0.11",
+  "bundleUrl": "https://github.com/gktjd0928-prog/contract-parcel-helper/releases/download/v1.0.11/bundle-1.0.11.zip",
+  "checksum": "65a97ab4d86ac946246a5c2b983bd1776743addee09a80ae9c82fa07328c36f7",
   "nativeBuild": 3,
   "apkUrl": "https://github.com/gktjd0928-prog/contract-parcel-helper/releases/download/v1.0.9/contract-parcel-helper-1.0.9.apk",
-  "notes": "설정: 기준요금표를 가로로 넘기지 않고 한 화면에 모두 보이도록 정리",
-  "publishedAt": "2026-11-17T16:25:59+00:00"
+  "notes": "설정: 기준요금표는 수정할 수 없게 고정 (예전에 고쳐 둔 요금이 있어도 기본 요금으로 계산)",
+  "publishedAt": "2026-11-17T16:32:37+00:00"
 }
