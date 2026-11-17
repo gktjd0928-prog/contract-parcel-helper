@@ -1,9 +1,9 @@
 {
-  "version": "1.0.6",
-  "bundleUrl": "https://github.com/gktjd0928-prog/contract-parcel-helper/releases/download/v1.0.6/bundle-1.0.6.zip",
-  "checksum": "66679d8d85d47a34b9c75d445980befe7f7a0fd81bd68745d8cde671948a5e38",
+  "version": "1.0.7",
+  "bundleUrl": "https://github.com/gktjd0928-prog/contract-parcel-helper/releases/download/v1.0.7/bundle-1.0.7.zip",
+  "checksum": "082ef0a2c1e8140ac96e74a688dfccabea3323a7a93b48b9e895aba6965e3332",
   "nativeBuild": 2,
   "apkUrl": "https://github.com/gktjd0928-prog/contract-parcel-helper/releases/download/v1.0.6/contract-parcel-helper-1.0.6.apk",
-  "notes": "업체 찾기: 업체를 누르면 공정위 자료의 모든 정보를 팝업으로 보여 줌(전화·문자·고객에 담기)\n화면: 휴대폰이 어두운 모드여도 항상 하얀 바탕, 소포 그림을 조금 더 보이게\n※ 이번 업데이트는 새 설치 파일(APK)이 필요합니다",
-  "publishedAt": "2026-11-17T16:04:18+00:00"
+  "notes": "업무지침 요약에 '계약소포 규격 적용 시 허용한도' 추가 (지침 29쪽 별표3: 중량·크기 허용한도, 크기 초과 접수)",
+  "publishedAt": "2026-11-17T16:07:16+00:00"
 }

@@ -60,7 +60,29 @@
         <li>평균요금은 10원 미만을 버립니다.</li>
       </ul>
       ${t.notes.map((n) => `<h4>${esc(n.title)}</h4><ul>${n.items.map((it) => `<li>${esc(it)}</li>`).join('')}</ul>`).join('')}
+      ${toleranceHtml(t.tolerance)}
       <p class="meta">기준: ${esc(t.version)} · 금액은 [설정]에서 수정한 값이 반영됩니다.</p>`;
+  }
+
+  // 계약소포 규격 적용 시 허용한도 (업무처리지침 29쪽 [별표 3] 2.)
+  function toleranceHtml(tol) {
+    if (!tol) return '';
+    const { esc } = window.cph;
+    const table = (label, data) => `
+      <table class="rule-table tol-table">
+        <thead><tr><th>${esc(label)}</th>${data.rows.map(([k]) => `<th>${esc(k)}</th>`).join('')}</tr></thead>
+        <tbody><tr><td>허용한도</td>${data.rows.map(([, v]) => `<td><b>${esc(v)}</b></td>`).join('')}</tr></tbody>
+      </table>
+      <p class="meta">${esc(data.note)}</p>`;
+    return `
+      <h4>계약소포 규격 적용 시 허용한도</h4>
+      <p class="tol-sub">가. 중량 단계별 최대 허용한도</p>
+      ${table('중량', tol.weight)}
+      <p class="tol-sub">나. 크기 단계별 최대 허용한도</p>
+      ${table('크기', tol.size)}
+      <p class="tol-sub">다. 크기 초과 우편물의 접수</p>
+      <ul>${tol.oversize.map((it) => `<li>${esc(it)}</li>`).join('')}</ul>
+      <p class="meta">${esc(tol.source)} · 지침 본문에서 ‘허용한도’로 찾아 원문을 확인하세요.</p>`;
   }
 
   // ---------- PDF 열기 ----------

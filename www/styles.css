@@ -380,3 +380,10 @@ body::before {
 .sheet-actions .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; }
 .sheet-actions .btn[disabled] { opacity: .6; }
 .item .main[data-detail] { cursor: pointer; }
+
+/* ---- 지침 요약: 규격 허용한도 표 ---- */
+.tol-sub { margin: 10px 0 4px; font-size: 13px; font-weight: 700; color: var(--text); }
+.tol-table th, .tol-table td { text-align: center !important; white-space: nowrap; padding: 7px 4px; }
+.tol-table th:first-child, .tol-table td:first-child { text-align: left !important; color: var(--muted); }
+.tol-table thead th { background: var(--kraft-soft); color: var(--text); }
+.tol-table td b { color: var(--brand); }
