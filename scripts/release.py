@@ -93,10 +93,12 @@ def zip_www(version):
 
 
 def build_apk(version):
-    gradlew = 'gradlew.bat' if os.name == 'nt' else './gradlew'
+    android = os.path.join(ROOT, 'android')
+    gradlew = os.path.join(android, 'gradlew.bat' if os.name == 'nt' else 'gradlew')
     run('npx cap sync android')
-    run(f'{gradlew} assembleRelease --no-daemon -q', cwd=os.path.join(ROOT, 'android'))
+    run([gradlew, 'assembleRelease', '--no-daemon', '-q'], cwd=android)
     src = os.path.join(ROOT, 'android', 'app', 'build', 'outputs', 'apk', 'release', 'app-release.apk')
+    os.makedirs(DIST, exist_ok=True)
     dst = os.path.join(DIST, f'contract-parcel-helper-{version}.apk')
     shutil.copyfile(src, dst)
     return dst
