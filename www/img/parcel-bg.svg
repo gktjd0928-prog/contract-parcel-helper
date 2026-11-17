@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 270" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <!-- 배경용 직접 그린 선 그림: 쌓인 소포 상자 · 항공우편 봉투 · 소인 (흐리게 깔아 쓰는 장식) -->
+  <!-- 바닥선 -->
+  <path d="M18 246h384" stroke="#b88a5e" stroke-width="2"/>
+
+  <!-- 큰 상자 (아래) -->
+  <g stroke="#9a6438" stroke-width="2.4">
+    <path d="M70 246V150l70-26 70 26v96z" fill="#f2e8db"/>
+    <path d="M70 150l70 26 70-26"/>
+    <path d="M140 176v70"/>
+    <!-- 포장 테이프 -->
+    <path d="M100 139l70 26v18" stroke="#b8312f" stroke-width="5" opacity=".75"/>
+    <!-- 운송장 라벨 -->
+    <rect x="152" y="196" width="40" height="28" rx="3" fill="#ffffff" transform="rotate(-20 172 210)"/>
+    <path d="M158 206l26-9M160 213l18-6" transform="rotate(0)" stroke="#b8312f" stroke-width="1.6"/>
+  </g>
+
+  <!-- 작은 상자 (위) -->
+  <g stroke="#9a6438" stroke-width="2.2">
+    <path d="M104 124V82l44-16 44 16v42" fill="#f7efe4"/>
+    <path d="M104 82l44 16 44-16"/>
+    <path d="M148 98v26"/>
+    <path d="M124 74l44 16v12" stroke="#b8312f" stroke-width="4" opacity=".7"/>
+  </g>
+
+  <!-- 오른쪽 길쭉한 상자 -->
+  <g stroke="#9a6438" stroke-width="2.2">
+    <rect x="226" y="176" width="86" height="70" rx="3" fill="#f2e8db"/>
+    <path d="M226 196h86"/>
+    <path d="M262 176v20" stroke="#b8312f" stroke-width="4" opacity=".7"/>
+    <!-- 취급주의 표시: 위쪽 화살표 두 개 -->
+    <path d="M286 236v-22m-6 6 6-6 6 6M300 236v-22m-6 6 6-6 6 6" stroke-width="1.8"/>
+  </g>
+
+  <!-- 항공우편 봉투 -->
+  <g transform="rotate(-9 340 110)">
+    <rect x="276" y="76" width="122" height="78" rx="5" fill="#ffffff" stroke="#9a6438" stroke-width="2.2"/>
+    <!-- 빨강·갈색 사선 테두리 -->
+    <path d="M282 82h110v66H282z" stroke="#b8312f" stroke-width="3" stroke-dasharray="9 7" opacity=".8"/>
+    <path d="M282 82l55 38 55-38" stroke="#9a6438" stroke-width="2"/>
+    <!-- 우표 -->
+    <rect x="364" y="88" width="22" height="26" rx="2" fill="#f7e9e6" stroke="#b8312f" stroke-width="1.8"/>
+  </g>
+
+  <!-- 소인 (동그라미 + 물결선) -->
+  <g stroke="#b8312f" stroke-width="2" opacity=".7">
+    <circle cx="246" cy="62" r="24"/>
+    <circle cx="246" cy="62" r="17"/>
+    <path d="M276 50c10-6 18 6 28 0s18 6 28 0M276 62c10-6 18 6 28 0s18 6 28 0M276 74c10-6 18 6 28 0s18 6 28 0"/>
+  </g>
+
+  <!-- 이동 표시선 -->
+  <path d="M30 120h22M22 134h30M34 148h18" stroke="#b88a5e" stroke-width="2.2"/>
+</svg>

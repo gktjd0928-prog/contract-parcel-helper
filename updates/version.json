@@ -1,9 +1,9 @@
 {
-  "version": "1.0.3",
-  "bundleUrl": "https://github.com/gktjd0928-prog/contract-parcel-helper/releases/download/v1.0.3/bundle-1.0.3.zip",
-  "checksum": "de3d60ce628783946429498cf3c0428cf8199e270b78ab87e28769e66cc452cc",
+  "version": "1.0.4",
+  "bundleUrl": "https://github.com/gktjd0928-prog/contract-parcel-helper/releases/download/v1.0.4/bundle-1.0.4.zip",
+  "checksum": "bcfde9ef0ab7764be4cf4b57222ba6e6bff04a35e36f39492711dfe9862c28a9",
   "nativeBuild": 1,
   "apkUrl": "https://github.com/gktjd0928-prog/contract-parcel-helper/releases/download/v1.0.0/contract-parcel-helper-1.0.0.apk",
-  "notes": "착불요금 추가: 계산·제안서에 착불요금(제안요금+착불수수료 500원, 반품·회수 감액 선택), 업무지침 요약에 착불소포 기준 추가\n화면 새 단장: 우체국 소포 느낌의 차분한 색(미색 바탕·우체국 빨강·크라프트 갈색)과 선 아이콘",
-  "publishedAt": "2026-11-17T15:44:18+00:00"
+  "notes": "업체 찾기: 공정거래위원회 자료에서 장성군 통신판매사업자를 자동으로 받음(매주 일요일 갱신 후 앱을 켜면 새로 받음, 신규 업체 표시, 읍·면별 보기)\n화면: 하얀 바탕 + 흐린 소포 그림, 찾기 형광 표시를 더 진하고 넓게",
+  "publishedAt": "2026-11-17T15:52:32+00:00"
 }
