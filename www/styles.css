@@ -135,7 +135,6 @@ body::before {
 .disc .amt { font-weight: 700; color: var(--brand); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .disc.disabled { opacity: .42; }
 .disc select { padding: 4px 6px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface-2); }
-.cod-fee { margin: 4px 0 0 30px; }
 
 .stepper { display: flex; align-items: center; gap: 6px; }
 .stepper button { width: 34px; height: 34px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface-2); font-size: 18px; color: var(--brand); }
@@ -154,7 +153,6 @@ body::before {
 .rate-table tr:last-child td { border-bottom: 0; }
 .rate-table .final { font-weight: 800; color: var(--brand); }
 .rate-table .minus { color: var(--accent); }
-.rate-table .cod { color: var(--text); font-weight: 600; background: color-mix(in srgb, var(--kraft-soft) 60%, transparent); }
 .rate-table.edit input { width: 64px; text-align: right; padding: 4px; border: 1px solid transparent; border-radius: 6px; background: transparent; }
 .rate-table.edit input:focus { border-color: var(--brand); outline: none; background: var(--surface-2); }
 .rate-table.edit td, .rate-table.edit th { padding: 6px; font-size: 13px; white-space: nowrap; }
@@ -241,7 +239,6 @@ body::before {
 .proposal .rate-table th:first-child, .proposal .rate-table td:first-child { padding-left: 0; }
 .proposal .rate-table th:last-child, .proposal .rate-table td:last-child { padding-right: 0; }
 .proposal .rate-table thead th { background: none; }
-.p-table .cod-row td { color: var(--text); font-weight: 600; }
 
 /* ---- 하단 탭 ---- */
 .tabbar {
