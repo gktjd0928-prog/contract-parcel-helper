@@ -722,7 +722,8 @@
     const App = window.Capacitor?.Plugins?.App;
     if (!App) return;
     App.addListener('backButton', () => {
-      if (!$('#client-sheet').hidden) closeClient();
+      const openSheet = document.querySelector('.sheet-backdrop:not([hidden])');
+      if (openSheet) openSheet.hidden = true;   // 열린 팝업(고객·업체 상세)부터 닫기
       else if (currentView !== 'calc') showView('calc');
       else App.exitApp();
     });

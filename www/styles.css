@@ -22,33 +22,12 @@
   --shadow: 0 1px 2px rgba(60, 40, 25, .07), 0 3px 10px rgba(60, 40, 25, .05);
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
-  color-scheme: light;
-}
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #171311;
-    --surface: #221d1a;
-    --surface-2: #2a2420;
-    --text: #eee7e1;
-    --muted: #a89c93;
-    --line: #3a322d;
-    --brand: #e0675f;
-    --brand-ink: #f08a83;
-    --brand-soft: #3a2321;
-    --kraft: #c9a27e;
-    --kraft-soft: #33291f;
-    --accent: #d49a6a;
-    --ok: #6fc796;
-    --warn: #f08a7e;
-    --on-brand: #1c1210;
-    --shadow: none;
-    color-scheme: dark;
-  }
+  color-scheme: only light;   /* 휴대폰이 어두운 모드여도 항상 밝게 */
 }
 
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }   /* display를 지정한 요소도 숨김 속성이 이기도록 */
-html, body { margin: 0; }
+html, body { margin: 0; background: #ffffff; }
 body {
   background: var(--bg);
   color: var(--text);
@@ -88,12 +67,11 @@ main { position: relative; z-index: 1; padding: 16px 16px calc(88px + var(--safe
 /* 하얀 바탕 위 흐린 소포 그림 (직접 그린 선 그림 img/parcel-bg.svg) */
 body::before {
   content: ''; position: fixed; z-index: 0; pointer-events: none;
-  right: -24px; bottom: calc(56px + var(--safe-bottom));
-  width: min(440px, 92vw); aspect-ratio: 420 / 270;
+  right: -16px; bottom: calc(60px + var(--safe-bottom));
+  width: min(520px, 100vw); aspect-ratio: 420 / 270;
   background: url('img/parcel-bg.svg') no-repeat center / contain;
-  opacity: .10;
+  opacity: .17;
 }
-@media (prefers-color-scheme: dark) { body::before { opacity: .06; filter: brightness(1.6); } }
 .view { display: none; }
 .view.active { display: block; }
 
@@ -384,3 +362,21 @@ body::before {
 /* ---- 업체 찾기: 신규 표시 ---- */
 .badge.new { background: var(--brand); color: var(--on-brand); }
 .toolbar.chips { flex-wrap: wrap; gap: 6px 14px; }
+
+/* ---- 업체 상세 팝업 ---- */
+.sheet-head h3 { font-size: 18px; }
+.seller-detail h4 { margin: 16px 0 6px; font-size: 13px; color: var(--brand-ink); }
+.seller-detail h4:first-child { margin-top: 6px; }
+.detail-kv {
+  display: grid; grid-template-columns: 112px 1fr; gap: 0; margin: 0;
+  border: 1px solid var(--line); border-radius: 10px; overflow: hidden; font-size: 14px;
+}
+.detail-kv dt, .detail-kv dd { padding: 9px 12px; border-bottom: 1px solid var(--line); margin: 0; }
+.detail-kv dt { background: var(--surface-2); color: var(--muted); font-size: 13px; }
+.detail-kv dd { word-break: break-all; }
+.detail-kv dt:nth-last-child(2), .detail-kv dd:last-child { border-bottom: 0; }
+.detail-kv a { color: var(--brand); font-weight: 600; text-decoration: none; }
+.sheet-actions { position: sticky; bottom: calc(-16px - var(--safe-bottom)); background: var(--surface); padding: 12px 0 4px; margin-top: 16px; }
+.sheet-actions .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; }
+.sheet-actions .btn[disabled] { opacity: .6; }
+.item .main[data-detail] { cursor: pointer; }

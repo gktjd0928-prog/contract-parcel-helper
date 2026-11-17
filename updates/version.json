@@ -1,9 +1,9 @@
 {
-  "version": "1.0.5",
-  "bundleUrl": "https://github.com/gktjd0928-prog/contract-parcel-helper/releases/download/v1.0.5/bundle-1.0.5.zip",
-  "checksum": "21555189fdb338ee85e63aa7fcbfaa8f1d15fd5d09d1b87f16b55dfe0b491d48",
-  "nativeBuild": 1,
-  "apkUrl": "https://github.com/gktjd0928-prog/contract-parcel-helper/releases/download/v1.0.0/contract-parcel-helper-1.0.0.apk",
-  "notes": "착불요금 정리: 별도 착불요금 항목·계산 옵션을 없애고, 제안서 '부가이용료'에 '착불요금 500원 추가' 한 줄로 표시",
-  "publishedAt": "2026-11-17T15:55:52+00:00"
+  "version": "1.0.6",
+  "bundleUrl": "https://github.com/gktjd0928-prog/contract-parcel-helper/releases/download/v1.0.6/bundle-1.0.6.zip",
+  "checksum": "66679d8d85d47a34b9c75d445980befe7f7a0fd81bd68745d8cde671948a5e38",
+  "nativeBuild": 2,
+  "apkUrl": "https://github.com/gktjd0928-prog/contract-parcel-helper/releases/download/v1.0.6/contract-parcel-helper-1.0.6.apk",
+  "notes": "업체 찾기: 업체를 누르면 공정위 자료의 모든 정보를 팝업으로 보여 줌(전화·문자·고객에 담기)\n화면: 휴대폰이 어두운 모드여도 항상 하얀 바탕, 소포 그림을 조금 더 보이게\n※ 이번 업데이트는 새 설치 파일(APK)이 필요합니다",
+  "publishedAt": "2026-11-17T16:04:18+00:00"
 }

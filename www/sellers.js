@@ -110,6 +110,7 @@
     const hi = table.slice(0, 10).findIndex((r) => r.some((v) => /상호|업체명|스토어명/.test(v)));
     if (hi < 0) throw new Error('헤더(상호 열)를 찾지 못했습니다');
     const idx = mapHeader(table[hi]);
+    const header = table[hi].map((h) => String(h).trim());
     const get = (r, f) => (idx[f] != null ? String(r[idx[f]] ?? '').trim() : '');
     return table.slice(hi + 1).map((r) => {
       const rec = {
@@ -125,6 +126,10 @@
       rec.region = regionOf(rec.addr);
       rec.town = townOf(rec.addr) || townOf(jibun);
       rec.key = rec.regno || `${rec.bizno}|${rec.name}`;
+      // 원본 파일의 모든 열 (빈 값·'null'은 뺌). 열 수가 어긋난 줄은 표시 순서대로 그대로 보관
+      rec.raw = header.map((h, i) => [h || `열${i + 1}`, String(r[i] ?? '').trim()])
+        .filter(([, v]) => v && !/^null$/i.test(v));
+      if (r.length > header.length) rec.rawShifted = true;
       return rec;
     }).filter((r) => r.name);
   }
@@ -176,7 +181,8 @@
     if (d > kst) d.setUTCDate(d.getUTCDate() - 7);                // 아직 일요일 정오 전이면 지난주
     return new Date(d.getTime() - 9 * 3600e3);
   }
-  const isStale = () => !meta?.fetchedAt || new Date(meta.fetchedAt) < lastSundayNoonKST();
+  const SCHEMA = 2;   // 2: 원본 열(raw) 보관
+  const isStale = () => !meta?.fetchedAt || meta.schema !== SCHEMA || new Date(meta.fetchedAt) < lastSundayNoonKST();
 
   async function fetchFtc({ silent = false } = {}) {
     if (fetching) return fetching;
@@ -200,7 +206,7 @@
       }
       rows = fresh;
       meta = {
-        source: 'ftc', area: FTC_AREA, count: rows.length,
+        source: 'ftc', schema: SCHEMA, area: FTC_AREA, count: rows.length,
         fetchedAt: new Date().toISOString(),
         latestRegDate: rows.reduce((m, r) => (r.regdate > m ? r.regdate : m), ''),
         added
@@ -267,7 +273,7 @@
       const tel = (r.tel || '').replace(/[^0-9+]/g, '');
       const added = hasClientFrom(r.key);
       return `<div class="item">
-        <div class="main">
+        <div class="main" data-detail="${esc(r.key)}">
           <div class="title">${esc(r.name)}${r.isNew ? '<span class="badge new">신규</span>' : ''}${r.status ? `<span class="badge ${isActive(r) ? '' : 'due'}">${esc(r.status)}</span>` : ''}</div>
           <div class="sub">${esc([r.ceo, r.items, r.method, r.regdate ? '신고 ' + fmtDate(r.regdate) : ''].filter(Boolean).join(' · ')) || '&nbsp;'}</div>
           <div class="sub">${esc(r.addr)}</div>
@@ -341,6 +347,8 @@
     ['#seller-region', '#seller-active', '#seller-phone', '#seller-new'].forEach((s) => $(s).addEventListener('change', rerender));
     $('#seller-more').addEventListener('click', () => { shown += PAGE; renderList(); });
     $('#seller-list').addEventListener('click', (e) => {
+      const d = e.target.closest('[data-detail]');
+      if (d) { openDetail(d.dataset.detail); return; }
       const b = e.target.closest('[data-add-seller]');
       if (!b) return;
       const r = rows.find((x) => x.key === b.dataset.addSeller);
@@ -363,6 +371,78 @@
     }
   }
 
-  window.cphSellers = { render, fetchFtc, _parseCsv: parseCsv, _toRecords: toRecords, _decode: decode, _lastSunday: lastSundayNoonKST, _townOf: townOf };
-  document.addEventListener('DOMContentLoaded', bind);
+  // ---------- 업체 상세 팝업 ----------
+  // 원본 열 이름 → 보기 좋은 묶음
+  const GROUPS = [
+    ['기본 정보', ['상호', '대표자명', '법인여부', '사업자등록번호', '업소상태']],
+    ['연락처', ['전화번호', '전자우편', '인터넷도메인']],
+    ['주소', ['사업장소재지(도로명)', '사업장소재지', '호스트서버소재지']],
+    ['판매', ['판매방식', '취급품목']],
+    ['신고', ['통신판매번호', '신고일자', '신고기관명', '신고기관 대표연락처']]
+  ];
+  const LABEL = { '사업장소재지(도로명)': '도로명 주소', '사업장소재지': '지번 주소', '신고기관 대표연락처': '신고기관 연락처' };
+
+  let detailKey = null;
+  function openDetail(key) {
+    const { esc } = window.cph;
+    const r = rows.find((x) => x.key === key);
+    if (!r) return;
+    detailKey = key;
+    // 원본 열이 없으면(예전에 받은 자료) 아는 항목으로 채움
+    const raw = new Map(r.raw && r.raw.length ? r.raw : [
+      ['상호', r.name], ['대표자명', r.ceo], ['사업자등록번호', r.bizno], ['업소상태', r.status],
+      ['전화번호', r.tel], ['전자우편', r.email], ['인터넷도메인', r.domain], ['사업장소재지(도로명)', r.addr],
+      ['판매방식', r.method], ['취급품목', r.items], ['통신판매번호', r.regno], ['신고일자', r.regdate]
+    ].filter(([, v]) => v));
+    const used = new Set();
+    const val = (k, v) => {
+      if (k === '신고일자') return esc(fmtDate(v));
+      if (k === '전화번호' || k === '신고기관 대표연락처') {
+        const tel = v.replace(/[^0-9+]/g, '');
+        return tel ? `<a href="tel:${tel}">${esc(v)}</a>` : esc(v);
+      }
+      if (k === '전자우편' && !v.includes('*')) return `<a href="mailto:${esc(v)}">${esc(v)}</a>`;
+      if (k === '인터넷도메인') {
+        const url = /^https?:\/\//i.test(v) ? v : 'https://' + v.replace(/^\/+/, '');
+        return /^[\w.-]+\.[a-z]{2,}/i.test(v.replace(/^https?:\/\//i, '')) ? `<a href="${esc(url)}" target="_blank" rel="noopener">${esc(v)}</a>` : esc(v);
+      }
+      return esc(v);
+    };
+    const section = (title, keys) => {
+      const items = keys.filter((k) => raw.get(k)).map((k) => { used.add(k); return `<dt>${esc(LABEL[k] || k)}</dt><dd>${val(k, raw.get(k))}</dd>`; });
+      return items.length ? `<h4>${esc(title)}</h4><dl class="detail-kv">${items.join('')}</dl>` : '';
+    };
+    let html = GROUPS.map(([t, ks]) => section(t, ks)).join('');
+    const rest = [...raw.keys()].filter((k) => !used.has(k));
+    if (rest.length) html += section('기타', rest);
+    if (r.rawShifted) html += '<p class="hint">※ 공정위 원본 파일에서 이 업체 줄의 칸이 밀려 있어 일부 항목이 다른 칸에 표시될 수 있습니다.</p>';
+
+    $('#seller-detail-title').innerHTML = `${esc(r.name)}${r.isNew ? '<span class="badge new">신규</span>' : ''}`;
+    $('#seller-detail-sub').textContent = [r.status, r.town].filter(Boolean).join(' · ');
+    $('#seller-detail-body').innerHTML = html;
+    const tel = (r.tel || '').replace(/[^0-9+]/g, '');
+    const added = window.cph.hasClientFrom(r.key);
+    $('#seller-detail-actions').innerHTML = `
+      ${tel ? `<a class="btn ghost" href="tel:${tel}">${ICON.phone} 전화</a><a class="btn ghost" href="sms:${tel}">${ICON.sms} 문자</a>` : ''}
+      <button class="btn primary" id="seller-detail-add" ${added ? 'disabled' : ''}>${added ? '담은 고객' : '고객에 담기'}</button>`;
+    $('#seller-sheet').hidden = false;
+    $('#seller-sheet .sheet').scrollTop = 0;
+  }
+  const closeDetail = () => { $('#seller-sheet').hidden = true; detailKey = null; };
+
+  function bindDetail() {
+    $('#seller-sheet').addEventListener('click', (e) => {
+      if (e.target.id === 'seller-sheet' || e.target.closest('[data-close]')) { closeDetail(); return; }
+      if (e.target.closest('#seller-detail-add')) {
+        const r = rows.find((x) => x.key === detailKey);
+        if (r && window.cph.addClientFrom(r)) {
+          const b = $('#seller-detail-add'); b.textContent = '담은 고객'; b.disabled = true;
+          renderList();
+        }
+      }
+    });
+  }
+
+  window.cphSellers = { render, fetchFtc, openDetail, _parseCsv: parseCsv, _toRecords: toRecords, _decode: decode, _lastSunday: lastSundayNoonKST, _townOf: townOf };
+  document.addEventListener('DOMContentLoaded', () => { bind(); bindDetail(); });
 })();
