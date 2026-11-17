@@ -3,7 +3,7 @@
   'use strict';
   const $ = (s) => document.querySelector(s);
   const PDF_URL = 'guide.pdf';
-  const MAX_RENDERED = 8;          // 동시에 그려 둘 최대 쪽 수 (메모리 절약)
+  const MAX_RENDERED = 10;         // 동시에 그려 둘 최대 쪽 수 (메모리 절약)
 
   const lib = window.pdfjsLib;
   if (lib) lib.GlobalWorkerOptions.workerSrc = 'vendor/pdf.worker.min.js';
@@ -85,6 +85,14 @@
     return opening;
   }
 
+  // ---------- 쪽 배치·그리기 (확대 지원) ----------
+  const MIN_ZOOM = 1, MAX_ZOOM = 4;
+  const MAX_CANVAS_PX = 5e6;       // 쪽 하나의 캔버스 최대 픽셀 (확대해도 메모리 폭주 방지)
+  const PIXEL_BUDGET = 24e6;       // 그려 둔 쪽 전체의 최대 픽셀
+  let zoom = 1;
+  let baseWidth = 0;
+  const near = new Set();          // 화면 근처에 있는 쪽 번호
+
   async function buildPages() {
     const box = $('#guide-pages');
     box.innerHTML = '<div class="empty">지침을 여는 중...</div>';
@@ -94,7 +102,12 @@
       box.innerHTML = `<div class="empty">${window.cph.esc(e.message)}</div>`;
       return;
     }
-    pageWidth = Math.min(box.clientWidth || 360, 760);
+    // 100%일 때 쪽 너비 = 화면 안쪽 너비 (스크롤 영역의 좌우 여백 제외)
+    const sc = $('#guide-scroller');
+    const cs = getComputedStyle(sc);
+    const inner = (sc.clientWidth || 360) - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    baseWidth = Math.min(inner, 760);
+    pageWidth = Math.round(baseWidth * zoom);
     box.innerHTML = '';
     pages = [];
     const first = await doc.getPage(1);
@@ -103,26 +116,40 @@
       const el = document.createElement('div');
       el.className = 'pdf-page';
       el.dataset.page = n;
-      // 실제 크기는 그릴 때 맞추고, 우선 1쪽 비율로 자리만 잡아 둠
-      el.style.width = pageWidth + 'px';
-      el.style.height = Math.round(pageWidth * v1.height / v1.width) + 'px';
       el.innerHTML = `<div class="pdf-canvas"></div><div class="textLayer"></div><span class="pdf-num">${n} / ${doc.numPages}</span>`;
       box.appendChild(el);
-      pages.push({ num: n, el, canvasBox: el.firstChild, textLayer: el.children[1], rendered: false, rendering: null, textContent: null, items: null, lastSeen: 0 });
+      // 실제 비율은 그릴 때 맞추고, 우선 1쪽 비율로 자리만 잡아 둠
+      const p = { num: n, el, canvasBox: el.firstChild, textLayer: el.children[1], ratio: v1.height / v1.width, rendered: false, rendering: null, textContent: null, items: null, lastSeen: 0, pixels: 0 };
+      sizePage(p);
+      pages.push(p);
     }
-    $('#guide-meta').textContent = `우체국 계약소포업무 처리지침 · ${doc.numPages}쪽`;
+    // 쪽마다 실제 크기를 미리 맞춰 둠 (나중에 그릴 때 높이가 바뀌어 화면이 밀리지 않도록)
+    for (const p of pages) {
+      const vp = (await doc.getPage(p.num)).getViewport({ scale: 1 });
+      p.ratio = vp.height / vp.width;
+      sizePage(p);
+    }
+    $('#guide-meta').textContent = `우체국 계약소포업무 처리지침 · ${doc.numPages}쪽 · 두 손가락으로 확대`;
 
     observer?.disconnect();
+    near.clear();
     observer = new IntersectionObserver((entries) => {
       entries.forEach((en) => {
-        if (!en.isIntersecting) return;
-        const p = pages[+en.target.dataset.page - 1];
+        const n = +en.target.dataset.page;
+        if (!en.isIntersecting) { near.delete(n); return; }
+        near.add(n);
+        const p = pages[n - 1];
         p.lastSeen = performance.now();
         renderPage(p);
       });
-    }, { rootMargin: '900px 0px' });
+    }, { rootMargin: '900px 900px' });
     pages.forEach((p) => observer.observe(p.el));
     indexReady = null;
+  }
+
+  function sizePage(p) {
+    p.el.style.width = pageWidth + 'px';
+    p.el.style.height = Math.round(pageWidth * p.ratio) + 'px';
   }
 
   async function getText(p) {
@@ -137,53 +164,170 @@
   function renderPage(p) {
     if (p.rendered) return Promise.resolve();
     if (p.rendering) return p.rendering;
+    const width = pageWidth;
     p.rendering = (async () => {
       const page = await doc.getPage(p.num);
       const v1 = page.getViewport({ scale: 1 });
-      const cssScale = pageWidth / v1.width;
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      p.ratio = v1.height / v1.width;
+      const cssScale = width / v1.width;
       const vpCss = page.getViewport({ scale: cssScale });
+      // 화면 밀도만큼 선명하게, 단 쪽당 픽셀 상한 안에서
+      let dpr = Math.min(window.devicePixelRatio || 1, 2);
+      dpr = Math.min(dpr, Math.sqrt(MAX_CANVAS_PX / (vpCss.width * vpCss.height)));
       const vpDev = page.getViewport({ scale: cssScale * dpr });
-      p.el.style.height = Math.round(vpCss.height) + 'px';
-      p.el.style.setProperty('--scale-factor', cssScale);
 
       const canvas = document.createElement('canvas');
       canvas.width = Math.floor(vpDev.width);
       canvas.height = Math.floor(vpDev.height);
-      p.canvasBox.replaceChildren(canvas);
       await page.render({ canvasContext: canvas.getContext('2d'), viewport: vpDev }).promise;
+      if (width !== pageWidth) return;          // 그리는 사이 확대 배율이 바뀜 → 버림
+      sizePage(p);
+      p.el.style.setProperty('--scale-factor', cssScale);
+      p.canvasBox.replaceChildren(canvas);
+      p.pixels = canvas.width * canvas.height;
 
       await getText(p);
-      p.textLayer.replaceChildren();
-      p.textDivs = [];
-      const strs = [];
-      await lib.renderTextLayer({
-        textContentSource: p.textContent,
-        container: p.textLayer,
-        viewport: vpCss,
-        textDivs: p.textDivs,
-        textContentItemsStr: strs
-      }).promise;
+      const layer = document.createElement('div');
+      layer.className = 'textLayer';
+      const divs = [];
+      // 글자층은 화면에 붙인 상태에서 그려야 --scale-factor를 읽을 수 있음
+      p.textLayer.replaceWith(layer);
+      p.textLayer = layer;
+      await lib.renderTextLayer({ textContentSource: p.textContent, container: layer, viewport: vpCss, textDivs: divs, textContentItemsStr: [] }).promise;
+      if (width !== pageWidth) return;
+      p.textDivs = divs;
       p.rendered = true;
       applyHighlights(p);
       evictFarPages();
-    })().finally(() => { p.rendering = null; });
+    })().finally(() => {
+      p.rendering = null;
+      // 확대 배율이 바뀌었는데 아직 화면 근처라면 새 배율로 다시 그림
+      if (!p.rendered && near.has(p.num)) renderPage(p);
+    });
     return p.rendering;
   }
 
-  // 오래 안 본 쪽의 그림을 비워 메모리 절약
-  function evictFarPages() {
-    const live = pages.filter((p) => p.rendered);
-    if (live.length <= MAX_RENDERED) return;
-    live.sort((a, b) => a.lastSeen - b.lastSeen)
-      .slice(0, live.length - MAX_RENDERED)
-      .forEach((p) => {
-        p.canvasBox.replaceChildren();
-        p.textLayer.replaceChildren();
-        p.textDivs = null;
-        p.rendered = false;
-      });
+  function clearPage(p, keepCanvas) {
+    if (!keepCanvas) { p.canvasBox.replaceChildren(); p.pixels = 0; }
+    p.textLayer.replaceChildren();
+    p.textDivs = null;
+    p.rendered = false;
   }
+
+  // 오래 안 본 쪽부터 비워 픽셀 예산 안으로 유지
+  function evictFarPages() {
+    const live = pages.filter((p) => p.pixels > 0).sort((a, b) => a.lastSeen - b.lastSeen);
+    let total = live.reduce((a, p) => a + p.pixels, 0);
+    let count = live.length;
+    for (const p of live) {
+      if (total <= PIXEL_BUDGET && count <= MAX_RENDERED) break;
+      if (near.has(p.num)) continue;
+      total -= p.pixels;
+      count--;
+      clearPage(p, false);
+    }
+  }
+
+  // ---------- 확대·축소 ----------
+  // anchor(화면 좌표)에 있던 지점이 확대 후에도 같은 자리에 오도록 스크롤을 맞춘다
+  function setZoom(next, anchorX, anchorY) {
+    next = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, next));
+    if (!pages.length || Math.abs(next - zoom) < 0.01) { updateZoomBadge(); return; }
+    const scroller = $('#guide-scroller');
+    const sRect = scroller.getBoundingClientRect();
+    if (anchorX == null) { anchorX = sRect.left + sRect.width / 2; anchorY = window.innerHeight / 2; }
+    // 손가락 아래에 있는 쪽과 그 쪽 안에서의 위치를 기억 (쪽 사이 간격은 확대되지 않으므로 쪽 기준으로 맞춤)
+    let anchorPage = pages[0], best = Infinity;
+    for (const p of pages) {
+      const r = p.el.getBoundingClientRect();
+      const d = anchorY < r.top ? r.top - anchorY : anchorY > r.bottom ? anchorY - r.bottom : 0;
+      if (d < best) { best = d; anchorPage = p; }
+      if (d === 0) break;
+    }
+    const pr = anchorPage.el.getBoundingClientRect();
+    const xIn = anchorX - pr.left, yIn = anchorY - pr.top;
+    const ratio = next / zoom;
+
+    zoom = next;
+    pageWidth = Math.round(baseWidth * zoom);
+    pages.forEach((p) => {
+      sizePage(p);
+      // 화면 근처 쪽은 늘어난 그림을 임시로 두고 글자층만 비운 뒤 새 배율로 다시 그림
+      if (p.rendered || p.pixels) clearPage(p, near.has(p.num));
+    });
+    let nr = anchorPage.el.getBoundingClientRect();
+    window.scrollBy(0, nr.top + yIn * ratio - anchorY);
+    nr = anchorPage.el.getBoundingClientRect();
+    scroller.scrollLeft += nr.left + xIn * ratio - anchorX;
+    updateZoomBadge();
+    scheduleRerender();
+  }
+
+  let rerenderTimer;
+  function scheduleRerender() {
+    clearTimeout(rerenderTimer);
+    rerenderTimer = setTimeout(() => {
+      const vh = window.innerHeight;
+      pages.forEach((p) => {
+        const r = p.el.getBoundingClientRect();
+        if (r.bottom > -900 && r.top < vh + 900) { near.add(p.num); p.lastSeen = performance.now(); renderPage(p); }
+      });
+    }, 120);
+  }
+
+  function updateZoomBadge() {
+    const b = $('#gs-zoom');
+    b.hidden = zoom <= 1.01;
+    b.querySelector('span').textContent = Math.round(zoom * 100) + '%';
+  }
+
+  function bindZoom() {
+    const scroller = $('#guide-scroller');
+    const box = $('#guide-pages');
+    let pinch = null;
+    const dist = (t) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+
+    scroller.addEventListener('touchstart', (e) => {
+      if (e.touches.length !== 2 || !pages.length) return;
+      e.preventDefault();
+      const t = e.touches;
+      const cx = (t[0].clientX + t[1].clientX) / 2, cy = (t[0].clientY + t[1].clientY) / 2;
+      const r = box.getBoundingClientRect();
+      box.style.transformOrigin = `${cx - r.left}px ${cy - r.top}px`;
+      pinch = { d0: dist(t), z0: zoom, cx, cy, s: 1 };
+    }, { passive: false });
+
+    scroller.addEventListener('touchmove', (e) => {
+      if (!pinch || e.touches.length !== 2) return;
+      e.preventDefault();
+      const z = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, pinch.z0 * dist(e.touches) / pinch.d0));
+      pinch.s = z / pinch.z0;
+      box.style.transform = `scale(${pinch.s})`;
+      const b = $('#gs-zoom');
+      b.hidden = false;
+      b.querySelector('span').textContent = Math.round(z * 100) + '%';
+    }, { passive: false });
+
+    const end = (e) => {
+      if (!pinch || e.touches.length >= 2) return;
+      const { z0, s, cx, cy } = pinch;
+      pinch = null;
+      box.style.transform = '';
+      setZoom(z0 * s, cx, cy);
+    };
+    scroller.addEventListener('touchend', end);
+    scroller.addEventListener('touchcancel', end);
+
+    // PC: Ctrl + 휠로 확대
+    scroller.addEventListener('wheel', (e) => {
+      if (!e.ctrlKey || !pages.length) return;
+      e.preventDefault();
+      setZoom(zoom * (e.deltaY < 0 ? 1.15 : 1 / 1.15), e.clientX, e.clientY);
+    }, { passive: false });
+
+    $('#gs-zoom').addEventListener('click', () => setZoom(1));
+  }
+
 
   // ---------- 찾기 ----------
   // 공백을 무시하고 대소문자 구분 없이 비교. 정규화된 글자 → (항목 번호, 글자 위치) 대응표를 함께 만든다.
@@ -302,7 +446,7 @@
     refreshAllHighlights();
     updateCount();
     const mark = p.textLayer.querySelector('mark.cur');
-    (mark || p.el).scrollIntoView({ block: 'center' });
+    (mark || p.el).scrollIntoView({ block: 'center', inline: 'center' });
   }
 
   // ---------- 화면 ----------
@@ -316,6 +460,7 @@
   }
 
   function bind() {
+    bindZoom();
     const input = $('#gs-input');
     let t;
     input.addEventListener('input', () => {

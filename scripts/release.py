@@ -155,7 +155,7 @@ def main():
     run([GH, 'release', 'create', tag, *assets, '--repo', cfg['repo'],
          '--title', f'계약소포 도우미 {version}', '--notes', a.notes])
     run(['git', 'add', '-A'])
-    run(['git', 'commit', '-m', f'Release {tag}\n\n{a.notes}'])
+    run(['git', 'commit', '-m', f'Release {tag}\n\n{a.notes}\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>'])
     run(['git', 'push', 'origin', cfg['branch']])
     print(f'\n배포 완료: {tag}. 앱의 [설정 → 업데이트 확인]에서 받을 수 있습니다 (GitHub 캐시로 최대 5분 걸릴 수 있음).')
 

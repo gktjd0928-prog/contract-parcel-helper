@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "bundleUrl": "https://github.com/gktjd0928-prog/contract-parcel-helper/releases/download/v1.0.0/bundle-1.0.0.zip",
-  "checksum": "625db3d826d0515f6e50b36afb92e8d4867d2e09a710579a4561a832d63f61de",
+  "version": "1.0.1",
+  "bundleUrl": "https://github.com/gktjd0928-prog/contract-parcel-helper/releases/download/v1.0.1/bundle-1.0.1.zip",
+  "checksum": "801da0f05499bef754eb9397de12d89968a6af982fcc7f132b4e11d96ab8c64f",
   "nativeBuild": 1,
   "apkUrl": "https://github.com/gktjd0928-prog/contract-parcel-helper/releases/download/v1.0.0/contract-parcel-helper-1.0.0.apk",
-  "notes": "첫 배포: 요금 계산, 제안서, 고객관리, 업무지침(찾기), 앱 업데이트 기능",
-  "publishedAt": "2026-11-17T14:42:16+00:00"
+  "notes": "업무지침: 두 손가락 확대(최대 400%), 찾은 단어 형광 노랑·현재 결과 형광 연두로 표시",
+  "publishedAt": "2026-11-17T15:26:45+00:00"
 }
