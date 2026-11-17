@@ -89,6 +89,7 @@
   const MIN_ZOOM = 1, MAX_ZOOM = 4;
   const MAX_CANVAS_PX = 5e6;       // 쪽 하나의 캔버스 최대 픽셀 (확대해도 메모리 폭주 방지)
   const PIXEL_BUDGET = 24e6;       // 그려 둔 쪽 전체의 최대 픽셀
+  const TEXT_LAYER_MIN_SCALE = 2.5;  // 글자층 최소 배율 (9pt 글자 → 약 22px로 그린 뒤 축소)
   let zoom = 1;
   let baseWidth = 0;
   const near = new Set();          // 화면 근처에 있는 쪽 번호
@@ -187,13 +188,20 @@
       p.pixels = canvas.width * canvas.height;
 
       await getText(p);
+      // 글자층(찾기·형광 표시 위치)은 크게 그린 뒤 화면 크기로 줄인다.
+      // 안드로이드 웹뷰는 최소 글자 크기(약 8px)보다 작은 글자를 강제로 키워서,
+      // 100%에서 그대로 그리면 형광 표시가 실제 글자와 어긋난다.
+      const textScale = Math.max(cssScale, TEXT_LAYER_MIN_SCALE);
+      const vpText = page.getViewport({ scale: textScale });
       const layer = document.createElement('div');
       layer.className = 'textLayer';
+      layer.style.setProperty('--scale-factor', textScale);
+      layer.style.transform = `scale(${cssScale / textScale})`;
       const divs = [];
       // 글자층은 화면에 붙인 상태에서 그려야 --scale-factor를 읽을 수 있음
       p.textLayer.replaceWith(layer);
       p.textLayer = layer;
-      await lib.renderTextLayer({ textContentSource: p.textContent, container: layer, viewport: vpCss, textDivs: divs, textContentItemsStr: [] }).promise;
+      await lib.renderTextLayer({ textContentSource: p.textContent, container: layer, viewport: vpText, textDivs: divs, textContentItemsStr: [] }).promise;
       if (width !== pageWidth) return;
       p.textDivs = divs;
       p.rendered = true;

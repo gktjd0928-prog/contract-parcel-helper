@@ -1,9 +1,9 @@
 {
-  "version": "1.0.1",
-  "bundleUrl": "https://github.com/gktjd0928-prog/contract-parcel-helper/releases/download/v1.0.1/bundle-1.0.1.zip",
-  "checksum": "801da0f05499bef754eb9397de12d89968a6af982fcc7f132b4e11d96ab8c64f",
+  "version": "1.0.2",
+  "bundleUrl": "https://github.com/gktjd0928-prog/contract-parcel-helper/releases/download/v1.0.2/bundle-1.0.2.zip",
+  "checksum": "80bbecb5c1d88975c9587232c52ebfd53a65ec810d4d2a3d095440aee7f986fe",
   "nativeBuild": 1,
   "apkUrl": "https://github.com/gktjd0928-prog/contract-parcel-helper/releases/download/v1.0.0/contract-parcel-helper-1.0.0.apk",
-  "notes": "업무지침: 두 손가락 확대(최대 400%), 찾은 단어 형광 노랑·현재 결과 형광 연두로 표시",
-  "publishedAt": "2026-11-17T15:26:45+00:00"
+  "notes": "업무지침 찾기: 100% 화면에서 형광 표시가 엉뚱한 곳에 나타나던 문제 수정, 형광색을 테두리 없는 노란색 한 가지로 통일",
+  "publishedAt": "2026-11-17T15:36:14+00:00"
 }
