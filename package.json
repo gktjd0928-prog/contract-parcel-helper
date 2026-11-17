@@ -18,6 +18,7 @@
     "@capacitor/core": "6.2.0",
     "@capacitor/share": "6.0.4",
     "@capgo/capacitor-updater": "6.53.0",
+    "html2canvas": "1.4.1",
     "pdfjs-dist": "3.11.174"
   }
 }

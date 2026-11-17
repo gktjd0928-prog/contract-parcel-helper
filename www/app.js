@@ -454,25 +454,87 @@
     }
   }
 
+  // ---------- 제안서를 그림(JPEG)으로 ----------
+  // 화면 밖에 넓은 제안서를 하나 더 그려서(표가 잘리지 않게) html2canvas로 찍는다
+  async function proposalImage() {
+    if (!window.html2canvas) throw new Error('그림 만들기 기능을 불러오지 못했습니다');
+    renderProposal();
+    const wrap = document.createElement('div');
+    wrap.className = 'capture';
+    wrap.innerHTML = `<div class="proposal">${$('#proposal').innerHTML}</div>`;
+    document.body.appendChild(wrap);
+    try {
+      if (document.fonts?.ready) await document.fonts.ready;
+      const canvas = await window.html2canvas(wrap, { scale: 2, backgroundColor: '#ffffff', logging: false, useCORS: false });
+      return canvas.toDataURL('image/jpeg', 0.9);
+    } finally {
+      wrap.remove();
+    }
+  }
+
+  // 문자에 함께 넣을 짧은 글 (전체 글을 함께 보내기 선택 시 문자 내용 전체)
+  function smsCaption() {
+    if ($('#p-with-text').checked) return $('#p-message').value;
+    const p = profile();
+    const who = `${p.office || ''} ${p.name || ''}`.trim();
+    return `[우체국 계약소포 요금 제안] ${quote.client || '고객'}님께 요금 제안서를 보내드립니다.`
+      + (who || p.phone ? `\n계약문의: ${who}${p.phone ? ' ' + p.phone : ''}` : '');
+  }
+
+  const sharePlugin = () => window.Capacitor?.Plugins?.ProposalShare;
+
+  // 앱이 아닌 곳(미리보기 등)에서는 그림을 내려받기
+  function downloadImage(dataUrl) {
+    const a = document.createElement('a');
+    a.href = dataUrl;
+    a.download = `계약소포_요금제안서_${(quote.client || '고객').replace(/[\\/:*?"<>|]/g, '')}_${todayISO()}.jpg`;
+    document.body.appendChild(a); a.click(); a.remove();
+  }
+
+  async function withBusy(btn, label, fn) {
+    const orig = btn.innerHTML;
+    btn.disabled = true; btn.textContent = label;
+    try { await fn(); } finally { btn.disabled = false; btn.innerHTML = orig; }
+  }
+
   function bindProposal() {
     $('#btn-copy').addEventListener('click', async () => {
       toast((await copyText($('#p-message').value)) ? '복사했습니다' : '복사하지 못했습니다');
     });
-    $('#btn-share').addEventListener('click', async () => {
-      const text = $('#p-message').value;
-      const title = '계약소포 요금 제안';
+
+    // 공유: 제안서 그림을 카카오톡·메일 등으로
+    $('#btn-share').addEventListener('click', (e) => withBusy(e.currentTarget, '그림 만드는 중…', async () => {
       try {
-        const Share = window.Capacitor?.Plugins?.Share;
-        if (Share) await Share.share({ title, text, dialogTitle: '제안서 공유' });
-        else if (navigator.share) await navigator.share({ title, text });
-        else { await copyText(text); toast('공유를 지원하지 않아 복사했습니다'); }
-      } catch (e) { /* 사용자가 공유 취소 */ }
-    });
-    $('#btn-sms').addEventListener('click', () => {
+        const image = await proposalImage();
+        const P = sharePlugin();
+        if (P) { await P.share({ image, text: smsCaption() }); return; }
+        const blob = await (await fetch(image)).blob();
+        const file = new File([blob], 'parcel-proposal.jpg', { type: 'image/jpeg' });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) await navigator.share({ files: [file], text: smsCaption() });
+        else { downloadImage(image); toast('제안서 그림을 내려받았습니다'); }
+      } catch (err) {
+        if (err?.name !== 'AbortError') toast('공유하지 못했습니다: ' + (err.message || err));
+      }
+    }));
+
+    // 문자 보내기: 받는 번호 + 제안서 그림이 들어간 상태로 문자 앱을 엶 (보내기는 문자 앱에서 직접)
+    $('#btn-sms').addEventListener('click', (e) => {
       const phone = $('#p-phone').value.replace(/[^0-9+]/g, '');
       if (!phone) { toast('받는 사람 번호를 입력하세요'); $('#p-phone').focus(); return; }
-      const sep = /iPhone|iPad|iPod/.test(navigator.userAgent) ? '&' : '?';
-      window.location.href = `sms:${phone}${sep}body=${encodeURIComponent($('#p-message').value)}`;
+      return withBusy(e.currentTarget, '그림 만드는 중…', async () => {
+        try {
+          const image = await proposalImage();
+          const P = sharePlugin();
+          if (P) { await P.sendSms({ phone, image, text: smsCaption() }); return; }
+          // 앱이 아닐 때: 그림은 내려받고 문자는 글로만
+          downloadImage(image);
+          toast('그림을 내려받았습니다. 문자에 직접 첨부하세요');
+          const sep = /iPhone|iPad|iPod/.test(navigator.userAgent) ? '&' : '?';
+          window.location.href = `sms:${phone}${sep}body=${encodeURIComponent(smsCaption())}`;
+        } catch (err) {
+          toast('문자 보내기 실패: ' + (err.message || err));
+        }
+      });
     });
   }
 

@@ -387,3 +387,11 @@ body::before {
 .tol-table th:first-child, .tol-table td:first-child { text-align: left !important; color: var(--muted); }
 .tol-table thead th { background: var(--kraft-soft); color: var(--text); }
 .tol-table td b { color: var(--brand); }
+
+/* ---- 제안서 그림 만들기 (화면 밖에서 넓게 그려 찍음) ---- */
+.capture { position: fixed; left: -10000px; top: 0; width: 680px; padding: 18px; background: #ffffff; z-index: -1; }
+.capture .proposal { margin: 0; box-shadow: none; }
+.capture .scroll-x { overflow: visible; }
+.capture .p-table th, .capture .p-table td { font-size: 14px; padding: 9px 8px !important; }
+.capture .status.bad { background: #fdecea; color: #b42318; }   /* 그림 도구가 color-mix를 못 읽어 단색으로 */
+.msg-text summary { font-size: 13px; color: var(--muted); cursor: pointer; margin-top: 6px; }

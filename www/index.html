@@ -89,14 +89,18 @@
           <span>받는 사람 휴대폰</span>
           <input id="p-phone" type="tel" inputmode="tel" placeholder="010-0000-0000">
         </label>
-        <label class="field">
-          <span>문자 내용</span>
-          <textarea id="p-message" rows="8"></textarea>
-        </label>
+        <p class="hint" style="margin:0 0 10px">문자 보내기를 누르면 위 제안서가 <b>그림으로</b> 들어간 문자 앱이 열립니다. 문자 앱에서 보내기를 누르세요.</p>
+        <label class="disc" style="padding-top:0"><input type="checkbox" id="p-with-text"><span class="name">글 내용도 함께 보내기<div class="meta">끄면 그림과 짧은 인사말만 보냅니다</div></span></label>
+        <details class="msg-text">
+          <summary>글 내용 보기·고치기</summary>
+          <label class="field" style="margin-top:8px">
+            <textarea id="p-message" rows="8" aria-label="문자 글 내용"></textarea>
+          </label>
+        </details>
       </div>
       <div class="actions">
-        <button class="btn ghost" id="btn-copy">복사</button>
-        <button class="btn ghost" id="btn-share">공유</button>
+        <button class="btn ghost" id="btn-copy">글 복사</button>
+        <button class="btn ghost" id="btn-share">그림 공유</button>
         <button class="btn primary" id="btn-sms">문자 보내기</button>
       </div>
     </section>
@@ -274,6 +278,7 @@
 
   <script src="version.js"></script>
   <script src="vendor/pdf.min.js"></script>
+  <script src="vendor/html2canvas.min.js"></script>
   <script src="icons.js"></script>
   <script src="rates.js"></script>
   <script src="db.js"></script>
