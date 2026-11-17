@@ -687,9 +687,12 @@
 
     // 열마다 그 열을 기준요금으로 쓰는 마지막 규격 이름 (2kg 열은 초소형과 공유)
     const heads = tariff.rates[0].map((_, c) => tariff.specs.filter((s) => s.baseFrom === c).pop());
+    // 한 화면에 들어가도록 물량은 '1,000통↑'처럼 짧게 표시
+    const shortVol = (v) => v.replace(/\s*이상$/, '↑');
     $('#tariff-table').innerHTML = `
-      <thead><tr><th>물량</th>${heads.map((s) => `<th>${esc(s.name)}</th>`).join('')}</tr></thead>
-      <tbody>${tariff.rates.map((row, r) => `<tr><td>${esc(tariff.volumes[r])}</td>${row.map((v, c) => `<td><input inputmode="numeric" data-r="${r}" data-c="${c}" value="${v}" aria-label="${esc(tariff.volumes[r])} ${esc(heads[c]?.name || '')}"></td>`).join('')}</tr>`).join('')}</tbody>`;
+      <colgroup><col class="c-vol">${heads.map(() => '<col>').join('')}</colgroup>
+      <thead><tr><th>월 물량</th>${heads.map((s) => `<th>${esc(s.name)}</th>`).join('')}</tr></thead>
+      <tbody>${tariff.rates.map((row, r) => `<tr><td>${esc(shortVol(tariff.volumes[r]))}</td>${row.map((v, c) => `<td><input inputmode="numeric" data-r="${r}" data-c="${c}" value="${v}" aria-label="${esc(tariff.volumes[r])} ${esc(heads[c]?.name || '')}"></td>`).join('')}</tr>`).join('')}</tbody>`;
 
     $('#discount-editor').innerHTML =
       tariff.discounts.map((d) => editorRow(d.id, d.name, d.amount)).join('') +

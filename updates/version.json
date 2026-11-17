@@ -1,9 +1,9 @@
 {
-  "version": "1.0.9",
-  "bundleUrl": "https://github.com/gktjd0928-prog/contract-parcel-helper/releases/download/v1.0.9/bundle-1.0.9.zip",
-  "checksum": "cead21bcab641329e9011c4a3b9b91ec2a406d7da9684749661b89347ee5c89b",
+  "version": "1.0.10",
+  "bundleUrl": "https://github.com/gktjd0928-prog/contract-parcel-helper/releases/download/v1.0.10/bundle-1.0.10.zip",
+  "checksum": "37a33120c404d754764239f1d056a96d5690f49a0a31de7a02555c388525cdd4",
   "nativeBuild": 3,
   "apkUrl": "https://github.com/gktjd0928-prog/contract-parcel-helper/releases/download/v1.0.9/contract-parcel-helper-1.0.9.apk",
-  "notes": "제안서: 문자 보내기를 누르면 제안서를 그림으로 만들어 받는 번호와 함께 문자 앱에 넣어 줌 ('그림 공유'로 카카오톡 등에도 보낼 수 있음)\n※ 이번 업데이트는 새 설치 파일(APK)이 필요합니다",
-  "publishedAt": "2026-11-17T16:21:54+00:00"
+  "notes": "설정: 기준요금표를 가로로 넘기지 않고 한 화면에 모두 보이도록 정리",
+  "publishedAt": "2026-11-17T16:25:59+00:00"
 }
