@@ -1,9 +1,9 @@
 {
-  "version": "1.0.7",
-  "bundleUrl": "https://github.com/gktjd0928-prog/contract-parcel-helper/releases/download/v1.0.7/bundle-1.0.7.zip",
-  "checksum": "082ef0a2c1e8140ac96e74a688dfccabea3323a7a93b48b9e895aba6965e3332",
+  "version": "1.0.8",
+  "bundleUrl": "https://github.com/gktjd0928-prog/contract-parcel-helper/releases/download/v1.0.8/bundle-1.0.8.zip",
+  "checksum": "92cce9a723e32bc891164ba76b7b86775e4b3c99ba98f954f1c43b9240819905",
   "nativeBuild": 2,
   "apkUrl": "https://github.com/gktjd0928-prog/contract-parcel-helper/releases/download/v1.0.6/contract-parcel-helper-1.0.6.apk",
-  "notes": "업무지침 요약에 '계약소포 규격 적용 시 허용한도' 추가 (지침 29쪽 별표3: 중량·크기 허용한도, 크기 초과 접수)",
-  "publishedAt": "2026-11-17T16:07:16+00:00"
+  "notes": "요금 계산: 계약 기간에 맞지 않는 감액은 선택할 수 없게 비활성화 (신규=1년 미만, 장기 1년 이상/3년 이상 항목 구분)",
+  "publishedAt": "2026-11-17T16:17:31+00:00"
 }

@@ -55,6 +55,8 @@ window.DEFAULT_TARIFF = {
   //  specs: 적용 규격 번호 목록(null = 감액 가능한 전 규격)
   //  outsideLimit: true면 감액 한도 계산에서 제외
   //  oneSpec: true면 사용자가 고른 규격 하나에만 적용
+  //  years: 적용 가능한 계약 기간 (0: 1년 미만=신규, 1: 1년 이상, 3: 3년 이상). 없으면 기간 무관
+  //         지침: 신규 감액은 최초 계약기간(1년 이내)만, 장기 감액은 유지기간 1년 이상/3년 이상으로 구분
   sections: [
     { title: '1. 소통·협조 감액', ids: ['sys', 'tr1', 'tr2', 'easy', 'code'] },
     { title: '2. 신규 감액 (계약 1년 이내)', ids: ['new1', 'new2', 'new3', 'new4'] },
@@ -68,19 +70,19 @@ window.DEFAULT_TARIFF = {
     { id: 'easy',   name: '다. 계약소포 간편접수 (1개 규격)',    amount: 30,  minVolume: 1, group: null,        specs: null, outsideLimit: false, oneSpec: true },
     { id: 'code',   name: '라. 집배코드·구분코스 인쇄',          amount: 50,  minVolume: 0, group: null,        specs: null, outsideLimit: false },
 
-    { id: 'new1',   name: '마-1. 월평균 1,000통 이상',   amount: 50,  minVolume: 3, group: 'tenure', specs: null, outsideLimit: false },
-    { id: 'new2',   name: '마-2. 월평균 10,000통 이상',  amount: 100, minVolume: 6, group: 'tenure', specs: null, outsideLimit: false },
-    { id: 'new3',   name: '마-3. 월평균 20,000통 이상',  amount: 150, minVolume: 7, group: 'tenure', specs: null, outsideLimit: false },
-    { id: 'new4',   name: '마-4. 월평균 30,000통 이상',  amount: 200, minVolume: 8, group: 'tenure', specs: null, outsideLimit: false },
+    { id: 'new1',   name: '마-1. 월평균 1,000통 이상',   amount: 50,  minVolume: 3, group: 'tenure', specs: null, outsideLimit: false, years: [0] },
+    { id: 'new2',   name: '마-2. 월평균 10,000통 이상',  amount: 100, minVolume: 6, group: 'tenure', specs: null, outsideLimit: false, years: [0] },
+    { id: 'new3',   name: '마-3. 월평균 20,000통 이상',  amount: 150, minVolume: 7, group: 'tenure', specs: null, outsideLimit: false, years: [0] },
+    { id: 'new4',   name: '마-4. 월평균 30,000통 이상',  amount: 200, minVolume: 8, group: 'tenure', specs: null, outsideLimit: false, years: [0] },
 
-    { id: 'long1a', name: '바-1a. 월평균 1,000통 (1년 이상)',  amount: 100, minVolume: 3, group: 'tenure', specs: null, outsideLimit: false },
-    { id: 'long1b', name: '바-1b. 월평균 1,000통 (3년 이상)',  amount: 150, minVolume: 3, group: 'tenure', specs: null, outsideLimit: false },
-    { id: 'long2a', name: '바-2a. 월평균 10,000통 (1년 이상)', amount: 150, minVolume: 6, group: 'tenure', specs: null, outsideLimit: false },
-    { id: 'long2b', name: '바-2b. 월평균 10,000통 (3년 이상)', amount: 200, minVolume: 6, group: 'tenure', specs: null, outsideLimit: false },
-    { id: 'long3a', name: '바-3a. 월평균 20,000통 (1년 이상)', amount: 200, minVolume: 7, group: 'tenure', specs: null, outsideLimit: false },
-    { id: 'long3b', name: '바-3b. 월평균 20,000통 (3년 이상)', amount: 250, minVolume: 7, group: 'tenure', specs: null, outsideLimit: false },
-    { id: 'long4a', name: '바-4a. 월평균 30,000통 (1년 이상)', amount: 250, minVolume: 8, group: 'tenure', specs: null, outsideLimit: false },
-    { id: 'long4b', name: '바-4b. 월평균 30,000통 (3년 이상)', amount: 300, minVolume: 8, group: 'tenure', specs: null, outsideLimit: false },
+    { id: 'long1a', name: '바-1a. 월평균 1,000통 (1년 이상)',  amount: 100, minVolume: 3, group: 'tenure', specs: null, outsideLimit: false, years: [1] },
+    { id: 'long1b', name: '바-1b. 월평균 1,000통 (3년 이상)',  amount: 150, minVolume: 3, group: 'tenure', specs: null, outsideLimit: false, years: [3] },
+    { id: 'long2a', name: '바-2a. 월평균 10,000통 (1년 이상)', amount: 150, minVolume: 6, group: 'tenure', specs: null, outsideLimit: false, years: [1] },
+    { id: 'long2b', name: '바-2b. 월평균 10,000통 (3년 이상)', amount: 200, minVolume: 6, group: 'tenure', specs: null, outsideLimit: false, years: [3] },
+    { id: 'long3a', name: '바-3a. 월평균 20,000통 (1년 이상)', amount: 200, minVolume: 7, group: 'tenure', specs: null, outsideLimit: false, years: [1] },
+    { id: 'long3b', name: '바-3b. 월평균 20,000통 (3년 이상)', amount: 250, minVolume: 7, group: 'tenure', specs: null, outsideLimit: false, years: [3] },
+    { id: 'long4a', name: '바-4a. 월평균 30,000통 (1년 이상)', amount: 250, minVolume: 8, group: 'tenure', specs: null, outsideLimit: false, years: [1] },
+    { id: 'long4b', name: '바-4b. 월평균 30,000통 (3년 이상)', amount: 300, minVolume: 8, group: 'tenure', specs: null, outsideLimit: false, years: [3] },
 
     { id: 'mini',   name: '사. 초소형 소포 (1kg/50cm 이하)', amount: 100, minVolume: 3, group: null, specs: [0], outsideLimit: true }
   ],

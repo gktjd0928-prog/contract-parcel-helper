@@ -97,6 +97,7 @@
 
     tariff.discounts.forEach((d) => {
       if (!(q.checked || []).includes(d.id) || vol < d.minVolume) return;
+      if (d.years && !d.years.includes(q.years | 0)) return;   // 계약 기간이 맞지 않는 감액(신규·장기)은 적용 안 함
       let targets = d.specs || tariff.specs.map((s, i) => i);
       if (d.oneSpec) targets = [q.oneSpec?.[d.id] ?? 0];
       apply(d.name, d.amount, targets, d.outsideLimit);
@@ -178,13 +179,20 @@
     renderQty();
   }
 
+  // 계약 기간 선택값(0·1·3)이 이 감액에 맞는지
+  const YEARS_LABEL = { 0: '계약 1년 미만(신규)만', 1: '계약 1년 이상만', 3: '계약 3년 이상만' };
+  const yearsOk = (d, years) => !d.years || d.years.includes(years | 0);
+
   function discountRow(d, vol) {
-    const disabled = vol < d.minVolume;
+    const volOk = vol >= d.minVolume;
+    const yrOk = yearsOk(d, quote.years);
+    const disabled = !volOk || !yrOk;
     const checked = quote.checked.includes(d.id) && !disabled;
     const meta = [
       d.outsideLimit ? '한도 제외' : null,
       d.specs ? d.specs.map((i) => tariff.specs[i].name).join('·') + '만' : null,
-      disabled ? tariff.volumes[d.minVolume] + '부터' : null
+      !volOk ? tariff.volumes[d.minVolume] + '부터' : null,
+      !yrOk ? d.years.map((y) => YEARS_LABEL[y]).join(', ') : null
     ].filter(Boolean).join(' · ');
     const specPicker = d.oneSpec && checked
       ? `<select data-onespec="${d.id}" aria-label="간편접수 적용 규격">${tariff.specs.map((s, i) => `<option value="${i}" ${(quote.oneSpec[d.id] ?? 0) == i ? 'selected' : ''}>${esc(s.name)}</option>`).join('')}</select>`
